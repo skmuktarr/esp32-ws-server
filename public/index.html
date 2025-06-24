@@ -1,61 +1,68 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="UTF-8">
-  <title>ESP32 Motor Controller</title>
-  <style>
-    body {
-      font-family: sans-serif;
-      text-align: center;
-      margin-top: 50px;
-    }
-    button {
-      margin: 10px;
-      padding: 10px 20px;
-      font-size: 18px;
-    }
-    input[type="range"] {
-      width: 300px;
-    }
-  </style>
+    <title>RC Car Control</title>
+    <style>
+        .control-panel {
+            text-align: center;
+            margin-top: 50px;
+        }
+        button {
+            padding: 15px 25px;
+            margin: 10px;
+            font-size: 18px;
+        }
+    </style>
 </head>
 <body>
-  <h1>ESP32 WebSocket Controller</h1>
+    <div class="control-panel">
+        <h1>RC Car Control</h1>
+        <div>
+            <button id="forward">Forward</button>
+        </div>
+        <div>
+            <button id="left">Left</button>
+            <button id="stop">Stop</button>
+            <button id="right">Right</button>
+        </div>
+        <div>
+            <label for="speed">Speed: </label>
+            <input type="range" id="speed" min="0" max="255" value="150">
+        </div>
+    </div>
 
-  <button onclick="sendCommand(true, 'left')">Left</button>
-  <button onclick="sendCommand(true, 'right')">Right</button>
-  <button onclick="sendCommand(false, 'stop')">Stop</button>
-  <br>
-  <button onclick="sendCommand(true, 'on')">ON</button>
-  <button onclick="sendCommand(false, 'off')">OFF</button>
-
-  <br><br>
-  <input type="range" min="0" max="255" value="150" id="speed" oninput="updateSpeed(this.value)">
-  <p>Speed: <span id="speedVal">150</span></p>
-
-  <script>
-    const ws = new WebSocket("wss://" + location.host);
-
-    ws.onopen = () => console.log("✅ WebSocket connected");
-    ws.onclose = () => console.log("❌ WebSocket disconnected");
-    ws.onerror = (error) => console.log("⚠️ WebSocket error:", error);
-
-    let speed = 150;
-
-    function updateSpeed(val) {
-      speed = parseInt(val);
-      document.getElementById("speedVal").textContent = val;
-    }
-
-    function sendCommand(motorOn, direction) {
-      const msg = {
-        motorOn: motorOn,
-        direction: direction,
-        speed: speed
-      };
-      ws.send(JSON.stringify(msg));
-      console.log("📤 Sent:", msg);
-    }
-  </script>
+    <script>
+        const socket = new WebSocket('wss://your-render-app.onrender.com');
+        
+        socket.onopen = () => {
+            console.log('Connected to server');
+        };
+        
+        document.getElementById('forward').addEventListener('click', () => {
+            sendCommand('on');
+        });
+        
+        document.getElementById('left').addEventListener('click', () => {
+            sendCommand('left');
+        });
+        
+        document.getElementById('right').addEventListener('click', () => {
+            sendCommand('right');
+        });
+        
+        document.getElementById('stop').addEventListener('click', () => {
+            sendCommand('stop');
+        });
+        
+        function sendCommand(direction) {
+            const speed = document.getElementById('speed').value;
+            const command = {
+                motorOn: direction !== 'stop',
+                direction: direction,
+                speed: parseInt(speed)
+            };
+            socket.send(JSON.stringify(command));
+        }
+    </script>
 </body>
 </html>
