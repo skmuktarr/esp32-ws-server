@@ -18,22 +18,29 @@ wss.on("connection", (ws) => {
     console.log("📩", message);
     try {
       const json = JSON.parse(message);
+
+      // Identify ESP32 client
+      if (json.type === "esp32") {
+        espSocket = ws;
+        console.log("✅ ESP32 identified");
+        return;
+      }
+
+      // Forward browser command to ESP32
       if (espSocket && ws !== espSocket) {
-        espSocket.send(message);
+        espSocket.send(JSON.stringify(json));
       }
     } catch {
-      console.log("⚠️ Not valid JSON");
+      console.log("⚠️ Invalid JSON");
     }
   });
 
   ws.on("close", () => {
-    if (ws === espSocket) espSocket = null;
+    if (ws === espSocket) {
+      console.log("❌ ESP32 disconnected");
+      espSocket = null;
+    }
   });
-
-  if (!espSocket) {
-    espSocket = ws;
-    console.log("🧠 ESP32 connected");
-  }
 });
 
 const PORT = process.env.PORT || 3000;
