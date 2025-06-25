@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Motor Control</title>
+  <style>
+    body { font-family: Arial; text-align: center; padding: 20px; }
+    input[type=range] { width: 80%; }
+  </style>
+</head>
+<body>
+  <h1>Motor Control</h1>
+  <label>Direction:</label><br>
+  <button onclick="send('forward')">Forward</button>
+  <button onclick="send('backward')">Backward</button>
+  <button onclick="send('stop')">Stop</button><br><br>
+  
+  <label for="speed">Speed:</label>
+  <input type="range" id="speed" min="0" max="255" value="128" oninput="updateSpeed(this.value)">
+  <p>Current Speed: <span id="speedVal">128</span></p>
+
+  <script>
+    let socket = new WebSocket("ws://esp32-ws-server-wqw2.onrender.com/");
+    let direction = "forward";
+    let speed = 128;
+
+    socket.onopen = () => console.log("WebSocket connected");
+
+    function updateSpeed(val) {
+      speed = val;
+      document.getElementById("speedVal").innerText = val;
+      send(direction);
+    }
+
+    function send(dir) {
+      direction = dir;
+      socket.send(`${dir},${speed}`);
+    }
+  </script>
+</body>
+</html>
